@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Sale Lines Description Picking | Sales Order Delivery Details | Sales Order Line Details on Picking | Delivery Address Details | Sales Order Picking Enhancement",
-    "support": "support@softhealer.com",
     "category": "Warehouse",
     "summary":
     "delivery address in sale order, invoice address delivery slip, customer address in quotation, manange quotation line module, sale order line description, manage sales order line odoo, invoice address in sale Odoo",
