@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- DELIVERY SLIP REPORT CUSTOMIZATION -->
+    <template id="sh_report_delivery_doc_for_so_line_desc_in_picking" inherit_id="stock.report_delivery_document">
+        <!-- PARTNER ADDRESSES CUSTOMIZATION -->
+        <xpath expr="//t[@t-set='address']" position="replace">
+            <t t-set="address">
+                <div class="row" name="customer_address">
+                    <div class="col-4">
+                        <div t-if="o.picking_type_id and o.picking_type_id.code != 'outgoing'">
+                            <span>
+                                <strong>Customer Address:</strong>
+                            </span>
+                        </div>
+                        <div t-if="o.picking_type_id and o.picking_type_id.code == 'outgoing'">
+                            <span>
+                                <strong>Delivery Address:</strong>
+                            </span>
+                        </div>
+
+                        <div t-if="o.move_ids and o.move_ids[0].partner_id" name="partner_header">
+                            <div t-field="o.move_ids[0].partner_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}' />
+                        </div>
+                        <div t-if="not (o.move_ids and o.move_ids[0].partner_id) and o.partner_id" name="partner_header">
+                            <div t-field="o.partner_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}' />
+                        </div>
+                    </div>
+                    <div class="col-4" t-if="o.sh_line_desc_partner_id">
+                        <div t-if="o.picking_type_id and o.picking_type_id.code=='outgoing'">
+                            <span>
+                                <strong>Customer Address:</strong>
+                            </span>
+                        </div>
+
+                        <div t-field="o.sh_line_desc_partner_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}' />
+                    </div>
+                    <div class="col-4" t-if="o.sh_line_desc_partner_inv_id">
+                        <div t-if="o.picking_type_id and o.picking_type_id.code=='outgoing'">
+                            <span>
+                                <strong>Invoice Address:</strong>
+                            </span>
+                        </div>
+
+                        <div t-field="o.sh_line_desc_partner_inv_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}' />
+                    </div>
+                </div>
+            </t>
+        </xpath>
+
+        <!-- MOVE LINE CUSTOMIZATION: ADD DESCRIPTION COLUMN FOR OUTGOING PICKINGS -->
+        <xpath expr="//table[@name='stock_move_table']//thead//tr[1]//th[@name='th_sm_product']" position="after">
+            <th t-if="o.picking_type_id and o.picking_type_id.code == 'outgoing'">
+                <strong>Description</strong>
+            </th>
+        </xpath>
+
+        <xpath expr="//table[@name='stock_move_table']//tbody//tr[1]//td[1]" position="replace">
+            <td>
+                <span t-field="move.product_id" />
+                <!-- For non-outgoing pickings, keep the original inline description -->
+                <p t-if="o.picking_type_id.code != 'outgoing' and move.description_picking
+                         and move.description_picking != move.product_id.name
+                         and move._get_report_description_picking()">
+                    <span t-out="move._get_report_description_picking()" t-options="{'widget': 'text'}" />
+                </p>
+            </td>
+            <!-- For outgoing pickings, show description in a separate column -->
+            <td t-if="o.picking_type_id and o.picking_type_id.code == 'outgoing'">
+                <span t-out="move._get_report_description_picking()" />
+            </td>
+        </xpath>
+    </template>
+
+    <!-- PICKING OPERATION REPORT CUSTOMIZATION -->
+    <template id="sh_inherit_report_picking_for_sale_line_desc_in_picking" inherit_id="stock.report_picking">
+        <!-- PARTNER ADDRESSES CUSTOMIZATION -->
+        <xpath expr="//div[@name='div_outgoing_address']/.." position="replace">
+            <div class="row" name="sh_customer_address_sale_line_desc_in_picking" t-if="o.picking_type_id and o.picking_type_id.code == 'outgoing'">
+                <div class="col-4">
+                    <div t-if="o.move_ids and o.move_ids[0].partner_id">
+                        <span>
+                            <strong>Delivery Address:</strong>
+                        </span>
+                        <div t-field="o.move_ids[0].partner_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}' />
+                    </div>
+                    <div t-if="o.picking_type_id.code != 'internal' and (not o.move_ids or not o.move_ids[0].partner_id) and o.picking_type_id.warehouse_id.partner_id">
+                        <span>
+                            <strong>Warehouse Address:</strong>
+                        </span>
+                        <div t-field="o.picking_type_id.warehouse_id.partner_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}' />
+                    </div>
+                </div>
+                <div class="col-4" t-if="o.sh_line_desc_partner_id">
+                    <div t-if="o.picking_type_id and o.picking_type_id.code=='outgoing'">
+                        <span>
+                            <strong>Customer Address:</strong>
+                        </span>
+                    </div>
+
+                    <div t-field="o.sh_line_desc_partner_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}' />
+                </div>
+                <div class="col-4" t-if="o.sh_line_desc_partner_inv_id">
+                    <div t-if="o.picking_type_id and o.picking_type_id.code=='outgoing'">
+                        <span>
+                            <strong>Invoice Address:</strong>
+                        </span>
+                    </div>
+
+                    <div t-field="o.sh_line_desc_partner_inv_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}' />
+                </div>
+            </div>
+
+            <div class="row" t-if="o.picking_type_id and o.picking_type_id.code != 'outgoing'">
+                <div class="col-6">
+                    <div t-if="o.move_ids and o.move_ids[0].partner_id and o.move_ids[0].partner_id.id != o.partner_id.id">
+                        <span>
+                            <strong>Delivery Address:</strong>
+                        </span>
+                        <div t-field="o.move_ids[0].partner_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}' />
+                    </div>
+                    <div t-if="o.picking_type_id.code != 'internal' and (not o.move_ids or not o.move_ids[0].partner_id) and o.picking_type_id.warehouse_id.partner_id">
+                        <span>
+                            <strong>Warehouse Address:</strong>
+                        </span>
+                        <div t-field="o.picking_type_id.warehouse_id.partner_id" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}' />
+                    </div>
+                </div>
+                <div class="col-5 offset-1">
+                    <div t-if="o.picking_type_id.code=='incoming' and o.partner_id">
+                        <span>
+                            <strong>Vendor Address:</strong>
+                        </span>
+                    </div>
+                    <div t-if="o.picking_type_id.code=='internal' and o.partner_id">
+                        <span>
+                            <strong>Warehouse Address:</strong>
+                        </span>
+                    </div>
+                    <div t-if="o.picking_type_id.code=='outgoing' and o.partner_id">
+                        <span>
+                            <strong>Customer Address:</strong>
+                        </span>
+                    </div>
+                    <div t-if="o.partner_id" name="partner_header">
+                        <div t-field="o.partner_id" t-options='{"widget": "contact", "fields": ["name", "phone"], "no_marker": True, "phone_icons": True}' />
+                        <p t-if="o.sudo().partner_id.vat">
+                            <t t-esc="o.company_id.country_id.vat_label or 'Tax ID'" />
+                            :
+                            <span t-field="o.sudo().partner_id.vat" />
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+
+        <xpath expr="//table[hasclass('o_main_table')]//thead//tr[1]//th[1]" position="after">
+            <th t-if="o.picking_type_id and o.picking_type_id.code=='outgoing'" width="25%">Description</th>
+        </xpath>
+
+        <xpath expr="//table[hasclass('o_main_table')]//tbody//t[@t-as='move']/tr[1]/td[1]" position="replace">
+            <td class="text-start">
+                <span t-field="move.product_id.display_name" />
+                <!-- For non-outgoing pickings, keep the original inline description -->
+                <span t-if="o.picking_type_id.code != 'outgoing'
+                            and move.description_picking
+                            and move.description_picking != move.product_id.name
+                            and move.description_picking != move.product_id.display_name">
+                    <span t-out="move.description_picking" t-options="{'widget': 'text'}" />
+                </span>
+            </td>
+            <!-- For outgoing pickings, show description in a separate column -->
+            <td t-if="o.picking_type_id and o.picking_type_id.code=='outgoing'">
+                <span t-out="move._get_report_description_picking()" />
+            </td>
+        </xpath>
+    </template>
+</odoo>
+
